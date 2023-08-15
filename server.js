@@ -1,41 +1,37 @@
-require('dotenv').config();
-const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 3000;
-const authRoutes = require('./routes/auth');
-const authenticateJWT = require('./middlewares/authenticateJWT');
-const protectedRoutes = require('./routes/protected');
+require('dotenv').config()
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://SimonDev:7LAjBql5ZhEQVr43@workoutwinnings.0dv0i22.mongodb.net/?retryWrites=true&w=majority";
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
+const express = require('express')
+const app = express()
+const jwt = require('jsonwebtoken')
+
+app.use(express.json())
+
+const posts = [
+  {
+    username: 'Kyle',
+    title: 'Post 1'
+  },
+  {
+    username: 'Jim',
+    title: 'Post 2'
   }
-});
+]
 
-async function run() {
-  try {
-    // Connect the client to the server
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("WorkoutWinnings").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+app.get('/posts', authenticateToken, (req, res) => {
+  res.json(posts.filter(post => post.username === req.user.name))
+})
 
-    app.use(express.json());
-    app.use('/auth', authRoutes);
-    app.use('/protected', authenticateJWT, protectedRoutes);
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.split(' ')[1]
+  if (token == null) return res.sendStatus(401)
 
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
-
-  } catch (error) {
-    console.error(error);
-  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    console.log(err)
+    if (err) return res.sendStatus(403)
+    req.user = user
+    next()
+  })
 }
 
-run().catch(console.dir);
+app.listen(3000)

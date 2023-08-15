@@ -4,6 +4,8 @@
   "description": "app to help people workout",
   "main": "index.js",
   "scripts": {
+    "devStart": "nodemon server.js",
+    "devAuthStart": "nodemon authServer.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -23,5 +25,8 @@
     "jsonwebtoken": "^9.0.1",
     "mongodb": "^5.7.0",
     "mongoose": "^7.4.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }
